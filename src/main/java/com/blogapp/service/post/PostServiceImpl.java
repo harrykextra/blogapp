@@ -5,6 +5,7 @@ import com.blogapp.data.models.Post;
 import com.blogapp.data.repository.PostRepository;
 import com.blogapp.service.cloud.CloudStorageService;
 import com.blogapp.web.dto.PostDto;
+import com.blogapp.web.exceptions.PostDoesNotExistException;
 import com.blogapp.web.exceptions.PostObjectIsNullException;
 import com.cloudinary.utils.ObjectUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -16,6 +17,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @Slf4j
 @Service
@@ -67,14 +69,30 @@ public class PostServiceImpl implements PostService{
         return postRepository.findAll();
     }
 
+    public List<Post> findPostInDescOrder(){
+        return postRepository.findByOrderByDateCreatedDesc();
+    }
+
     @Override
     public Post updatePost(PostDto postDto) {
         return null;
     }
 
     @Override
-    public Post findById(Integer id) {
-        return null;
+    public Post findById(Integer id) throws PostDoesNotExistException {
+
+       if (id == null){
+           throw new NullPointerException("Post id cannot be null");
+       }
+
+        Optional<Post> foundPost = postRepository.findById(id);
+
+       if (foundPost.isPresent()){
+           return foundPost.get();
+       }else {
+           throw new PostDoesNotExistException("Post with id --> {}");
+       }
+
     }
 
     @Override
@@ -87,4 +105,7 @@ public class PostServiceImpl implements PostService{
         return null;
     }
 
+    public static String extractFilename(String fileName){
+        return fileName.split("\\.")[0];
+    }
 }
